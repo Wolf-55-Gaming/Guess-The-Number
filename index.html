@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Guessing Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap');
+
+    body {
+      font-family: 'Comic Neue', cursive;
+      background: linear-gradient(to bottom right, #ffe6f0, #ccf5ff);
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+      direction: ltr;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      color: #ff3399;
+      text-shadow: 2px 2px white;
+    }
+
+    #languageSelect {
+      margin-bottom: 20px;
+      padding: 8px;
+      font-size: 16px;
+      border-radius: 10px;
+    }
+
+    #gameBox {
+      background-color: #ffffffdd;
+      border: 5px dashed #ff99cc;
+      border-radius: 30px;
+      padding: 30px;
+      margin: auto;
+      max-width: 400px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    input[type="number"] {
+      padding: 12px;
+      font-size: 18px;
+      border: 3px solid #66ccff;
+      border-radius: 20px;
+      width: 100px;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    button {
+      background-color: #ff66cc;
+      color: white;
+      font-size: 18px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 25px;
+      margin: 5px;
+      cursor: pointer;
+      box-shadow: 0 4px #cc3399;
+      transition: transform 0.1s;
+    }
+
+    button:hover {
+      background-color: #ff3399;
+      transform: scale(1.05);
+    }
+
+    #message {
+      margin-top: 20px;
+      font-size: 1.3em;
+      color: #333;
+      min-height: 30px;
+    }
+
+    @media (max-width: 480px) {
+      input[type="number"] {
+        width: 80px;
+      }
+
+      button {
+        font-size: 16px;
+        padding: 8px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1 id="title">Sayısı Tahmin Et 🎯</h1>
+<select id="languageSelect" onchange="changeLanguage(this.value)">
+  <option value="tr">🇹🇷 Türkçe</option>
+  <option value="en">🇬🇧 English</option>
+  <option value="ar">🇸🇦 العربية</option>
+</select>
+
+<p id="instruction">1 ile 100 arasında bir sayı tuttum. Bakalım kaç tahminde bulabileceksin!</p>
+
+<div id="gameBox">
+  <input type="number" id="guess" placeholder="Tahminin">
+  <div>
+    <button onclick="checkGuess()" id="guessBtn">Tahmin Et</button>
+    <button onclick="restartGame()" id="restartBtn">Yeniden Başlat</button>
+  </div>
+  <div id="message"></div>
+</div>
+
+<!-- Sesler -->
+<audio id="correctSound" src="https://www.soundjay.com/buttons/sounds/button-4.mp3" preload="auto"></audio>
+<audio id="wrongSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
+
+<script>
+  let secretNumber = Math.floor(Math.random() * 100) + 1;
+  let attempts = 0;
+
+  const correctSound = document.getElementById("correctSound");
+  const wrongSound = document.getElementById("wrongSound");
+
+  const messages = {
+    tr: {
+      title: "Sayısı Tahmin Et 🎯",
+      instruction: "1 ile 100 arasında bir sayı tuttum. Bakalım kaç tahminde bulabileceksin!",
+      placeholder: "Tahminin",
+      guessBtn: "Tahmin Et",
+      restartBtn: "Yeniden Başlat",
+      tooLow: "🔼 Daha büyük bir sayı dene!",
+      tooHigh: "🔽 Daha küçük bir sayı dene!",
+      correct: "🎉 Tebrikler! {n} denemede doğru bildin!",
+      invalid: "⚠️ 1 ile 100 arasında bir sayı gir!"
+    },
+    en: {
+      title: "Guess the Number 🎯",
+      instruction: "I picked a number between 1 and 100. Try to guess it!",
+      placeholder: "Your Guess",
+      guessBtn: "Guess",
+      restartBtn: "Restart",
+      tooLow: "🔼 Try a higher number!",
+      tooHigh: "🔽 Try a lower number!",
+      correct: "🎉 Congratulations! You guessed it in {n} tries!",
+      invalid: "⚠️ Enter a number between 1 and 100!"
+    },
+    ar: {
+      title: "احزر الرقم 🎯",
+      instruction: "اخترت رقماً بين 1 و100. حاول أن تخمنه!",
+      placeholder: "تخمينك",
+      guessBtn: "احزر",
+      restartBtn: "ابدأ من جديد",
+      tooLow: "🔼 جرّب رقماً أكبر!",
+      tooHigh: "🔽 جرّب رقماً أصغر!",
+      correct: "🎉 أحسنت! خمنت الرقم في {n} محاولة!",
+      invalid: "⚠️ أدخل رقماً بين 1 و100!"
+    }
+  };
+
+  let currentLang = "tr";
+
+  function checkGuess() {
+    const userGuess = Number(document.getElementById("guess").value);
+    const msg = document.getElementById("message");
+    attempts++;
+
+    if (userGuess < 1 || userGuess > 100) {
+      msg.textContent = messages[currentLang].invalid;
+      wrongSound.play();
+    } else if (userGuess === secretNumber) {
+      msg.textContent = messages[currentLang].correct.replace("{n}", attempts);
+      correctSound.play();
+    } else if (userGuess < secretNumber) {
+      msg.textContent = messages[currentLang].tooLow;
+      wrongSound.play();
+    } else {
+      msg.textContent = messages[currentLang].tooHigh;
+      wrongSound.play();
+    }
+
+    document.getElementById("guess").value = '';
+    document.getElementById("guess").focus();
+  }
+
+  function restartGame() {
+    secretNumber = Math.floor(Math.random() * 100) + 1;
+    attempts = 0;
+    document.getElementById("message").textContent = "";
+    document.getElementById("guess").value = "";
+    document.getElementById("guess").focus();
+  }
+
+  function changeLanguage(lang) {
+    currentLang = lang;
+    document.getElementById("title").textContent = messages[lang].title;
+    document.getElementById("instruction").textContent = messages[lang].instruction;
+    document.getElementById("guess").placeholder = messages[lang].placeholder;
+    document.getElementById("guessBtn").textContent = messages[lang].guessBtn;
+    document.getElementById("restartBtn").textContent = messages[lang].restartBtn;
+
+    // RTL desteği Arapça için
+    document.body.dir = lang === "ar" ? "rtl" : "ltr";
+  }
+</script>
+
+</body>
+</html>
